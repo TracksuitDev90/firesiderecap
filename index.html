@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fireside Recap Studio</title>
+    <meta name="description" content="Live template for Fireside's end-of-year Discord recap cards." />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="assets/fonts/unbounded-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/fonts/inter-tight-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/fonts/instrument-serif-latin-400-italic.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="styles/fonts.css" />
+    <link rel="stylesheet" href="styles/app.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <header class="topbar">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M6 4h20a2 2 0 0 1 2 2v7a3 3 0 0 0 0 6v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a3 3 0 0 0 0-6V6a2 2 0 0 1 2-2Z" />
+            <path class="perf" d="M9 16h14" />
+          </svg>
+          <div>
+            <strong>Fireside Recap</strong>
+            <span>Studio</span>
+          </div>
+        </div>
+        <div class="save-state" id="save-state" aria-live="polite"></div>
+        <nav class="actions" aria-label="Project">
+          <button class="btn ghost" data-action="import-csv" title="Import member stats from a CSV / spreadsheet export">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0-4-4m4 4 4-4M4 15v2h12v-2" /></svg>
+            <span>Import CSV</span>
+          </button>
+          <button class="btn ghost" data-action="download-csv" title="Download a spreadsheet with the current fields and data">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3h9l3 3v11H4zM7 9h6M7 12h6M7 15h4" /></svg>
+            <span>Spreadsheet</span>
+          </button>
+          <span class="divider" aria-hidden="true"></span>
+          <button class="btn ghost" data-action="open-project" title="Open a saved project file">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h5l2 2h7v8H3z" /></svg>
+            <span>Open</span>
+          </button>
+          <button class="btn ghost" data-action="save-project" title="Save everything (including photos) to a project file">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 3h10l2 2v12H4zM7 3v4h6V3M7 17v-5h6v5" /></svg>
+            <span>Save</span>
+          </button>
+          <button class="btn primary" data-action="export-all" title="Download every card as PNGs in a .zip">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0-4-4m4 4 4-4M4 17h12" /></svg>
+            <span>Export all</span>
+          </button>
+        </nav>
+      </header>
+
+      <aside class="panel members" aria-label="Members">
+        <div class="panel-head">
+          <h2>Members <span class="count" id="member-count"></span></h2>
+          <button class="icon-btn" data-action="add-member" title="Add member" aria-label="Add member">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12" /></svg>
+          </button>
+        </div>
+        <label class="search">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5" /><path d="m13 13 3 3" /></svg>
+          <input id="member-search" type="search" placeholder="Search" aria-label="Search members" />
+        </label>
+        <ul class="member-list" id="member-list" role="listbox" aria-label="Member cards"></ul>
+      </aside>
+
+      <main class="stage" id="stage">
+        <div class="stage-canvas" id="stage-canvas">
+          <canvas id="card" width="1080" height="1350" aria-label="Recap card preview"></canvas>
+          <div class="drop-hint" id="drop-hint">Drop a photo, CSV or project file</div>
+        </div>
+        <div class="stage-bar">
+          <div class="pager">
+            <button class="icon-btn" data-action="prev" aria-label="Previous member">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 5-5 5 5 5" /></svg>
+            </button>
+            <span id="pager-label"></span>
+            <button class="icon-btn" data-action="next" aria-label="Next member">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" /></svg>
+            </button>
+          </div>
+          <p class="hint" id="stage-hint">Drag the photo to reposition · scroll to zoom</p>
+          <button class="btn primary" data-action="download">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v10m0 0-4-4m4 4 4-4M4 17h12" /></svg>
+            <span>Download card</span>
+          </button>
+        </div>
+      </main>
+
+      <aside class="panel inspector" aria-label="Editor">
+        <div class="tabs" role="tablist">
+          <button role="tab" data-action="tab" data-tab="member">Card</button>
+          <button role="tab" data-action="tab" data-tab="fields">Fields</button>
+          <button role="tab" data-action="tab" data-tab="style">Style</button>
+        </div>
+        <div class="inspector-body" id="inspector"></div>
+      </aside>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <input type="file" id="file-photo" accept="image/*" hidden />
+    <input type="file" id="file-emoji" accept="image/*" hidden />
+    <input type="file" id="file-csv" accept=".csv,.tsv,text/csv,text/tab-separated-values" hidden />
+    <input type="file" id="file-project" accept=".json,application/json" hidden />
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
