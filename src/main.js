@@ -156,7 +156,7 @@ function renderMembers() {
           return `<li class="member-item" role="option" data-action="select-member" data-id="${m.id}"
               aria-selected="${m.id === P().activeId}" style="--m-accent:${esc(m.accent)};--m-on:${onColor(m.accent)}">
             ${m.avatar ? `<img class="avatar" src="${esc(m.avatar)}" alt="">` : `<span class="avatar">${initial}</span>`}
-            <span class="member-meta"><strong>${esc(m.name || 'Untitled')}</strong><span>No. ${String(i + 1).padStart(3, '0')}</span></span>
+            <span class="member-meta"><strong>${esc(m.name || 'Untitled')}</strong><span>${String(i + 1).padStart(2, '0')}</span></span>
             <span class="fill${n === total ? ' done' : ''}" title="${n} of ${total} fields filled">${n}/${total}</span>
           </li>`;
         })
@@ -282,7 +282,7 @@ function fieldsTab() {
           <select data-f="${f.id}" data-prop="type" aria-label="Field type">
             ${Object.entries(FIELD_TYPES).map(([k, t]) => `<option value="${k}" ${k === f.type ? 'selected' : ''}>${t.label}</option>`).join('')}
           </select>
-          ${f.type === 'stat' ? `<label class="check"><input type="checkbox" data-f="${f.id}" data-prop="wide" ${f.wide ? 'checked' : ''}> Wide (hero number)</label>` : ''}
+          ${f.type === 'stat' ? `<label class="check"><input type="checkbox" data-f="${f.id}" data-prop="wide" ${f.wide ? 'checked' : ''}> Own row</label>` : ''}
         </div>
       </li>`).join('')}
     </ul>
@@ -306,7 +306,7 @@ function styleTab() {
       <label class="field"><span>Title</span><input type="text" data-e="title" value="${esc(ev.title)}"></label>
       <label class="field"><span>Year</span><input type="text" data-e="year" value="${esc(ev.year)}"></label>
       <label class="field"><span>Subtitle</span><input type="text" data-e="subtitle" value="${esc(ev.subtitle)}"></label>
-      <label class="field"><span>Top-right tag</span><input type="text" data-e="admit" value="${esc(ev.admit)}"></label>
+      <label class="field"><span>Top-right tag</span><input type="text" data-e="admit" value="${esc(ev.admit)}" placeholder="Optional"></label>
     </div>
     <label class="field"><span>Fine print<em>use {name}</em></span><textarea data-e="finePrint" rows="3">${esc(ev.finePrint)}</textarea></label>
     <label class="field"><span>Serial prefix</span><input type="text" data-e="serialPrefix" value="${esc(ev.serialPrefix)}"></label>
@@ -316,6 +316,7 @@ function styleTab() {
     <h3 class="section-title">Type</h3>
     <label class="field"><span>Display font</span>
       <select data-s="displayFont">${Object.entries(DISPLAY_FONTS).map(([k, f]) => `<option value="${k}" ${k === st.displayFont ? 'selected' : ''}>${f.label}</option>`).join('')}</select></label>
+    ${rangeField('Name size <em>all cards</em>', 'nameScale', st.nameScale, 0.5, 1.4, 0.01, pct)}
     ${rangeField('Chromatic aura on name', 'aura', st.aura, 0, 1, 0.01, pct)}
   </section>
 

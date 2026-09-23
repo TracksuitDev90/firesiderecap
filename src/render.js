@@ -427,12 +427,53 @@ function numFont(font) {
   return { family: font.family, weight: font.weight, tracking: font.tracking + 0.005 };
 }
 
+const isStatLike = (f) => f.type === 'stat' || f.type === 'emoji';
+
+/** Split a run of stat fields into rows: "own row" fields alone, the rest up to 3 per row. */
+function statRows(run) {
+  const rows = [];
+  let pending = [];
+  const flush = () => {
+    if (!pending.length) return;
+    const n = Math.ceil(pending.length / 3);
+    const per = Math.ceil(pending.length / n);
+    for (let j = 0; j < pending.length; j += per) rows.push(pending.slice(j, j + per));
+    pending = [];
+  };
+  for (const f of run) {
+    if (f.wide) { flush(); rows.push([f]); } else pending.push(f);
+  }
+  flush();
+  return rows;
+}
+
 /** Turn the field list into stacked, measured content blocks. */
 function buildBlocks(ctx, project, member, s, font, stubEmoji, emojiImages) {
   const st = project.style;
   const lm = labelMetrics(ctx, s);
   const blocks = [];
   const visible = project.fields.filter((f) => f !== stubEmoji && hasValue(member, f));
+
+  // Every stat number on a card shares one size: the largest that fits in every cell.
+  const gapX = 32 * s, gapY = 34 * s;
+  const nf = numFont(font);
+  let statSize = Infinity;
+  for (let j = 0; j < visible.length;) {
+    if (!isStatLike(visible[j])) { j++; continue; }
+    const run = [];
+    while (j < visible.length && isStatLike(visible[j])) run.push(visible[j++]);
+    for (const row of statRows(run)) {
+      const cellW = (CW - gapX * (row.length - 1)) / row.length;
+      const base = (row.length === 3 ? 78 : 98) * s;
+      statSize = Math.min(statSize, base);
+      setFont(ctx, { ...nf, size: base });
+      for (const f of row) {
+        if (f.type === 'emoji') continue;
+        const w = textWidth(ctx, formatValue(member.values[f.id]));
+        statSize = Math.min(statSize, base * (cellW / Math.max(w, 1)));
+      }
+    }
+  }
 
   let i = 0;
   while (i < visible.length) {
@@ -503,37 +544,15 @@ function buildBlocks(ctx, project, member, s, font, stubEmoji, emojiImages) {
     } else {
       // A run of consecutive stat-like fields becomes a grid.
       const run = [];
-      while (i < visible.length && (visible[i].type === 'stat' || visible[i].type === 'emoji')) run.push(visible[i++]);
-      const rows = [];
-      let pending = [];
-      const flush = () => {
-        if (!pending.length) return;
-        const n = Math.ceil(pending.length / 3);
-        const per = Math.ceil(pending.length / n);
-        for (let j = 0; j < pending.length; j += per) rows.push(pending.slice(j, j + per));
-        pending = [];
-      };
-      for (const f2 of run) {
-        if (f2.wide) { flush(); rows.push([f2]); } else pending.push(f2);
-      }
-      flush();
-
-      const gapX = 32 * s, gapY = 34 * s;
-      const nf = numFont(font);
-      const measured = rows.map((row) => {
-        const cols = row.length;
-        const cellW = (CW - gapX * (cols - 1)) / cols;
-        const base = (cols === 1 ? (row[0].wide ? 132 : 98) : cols === 2 ? 98 : 78) * s;
-        let size = base;
-        for (const f2 of row) {
-          if (f2.type === 'emoji') continue;
-          setFont(ctx, { ...nf, size: base });
-          const w = textWidth(ctx, formatValue(member.values[f2.id]));
-          size = Math.min(size, base * (cellW / Math.max(w, 1)));
-        }
-        const cap = capRatio(ctx, nf.family, nf.weight) * size;
-        return { row, cellW, size, cap, h: lm.cap + lm.gap + cap };
-      });
+      while (i < visible.length && isStatLike(visible[i])) run.push(visible[i++]);
+      const cap = capRatio(ctx, nf.family, nf.weight) * statSize;
+      const measured = statRows(run).map((row) => ({
+        row,
+        cellW: (CW - gapX * (row.length - 1)) / row.length,
+        size: statSize,
+        cap,
+        h: lm.cap + lm.gap + cap,
+      }));
       const h = measured.reduce((a, r) => a + r.h, 0) + gapY * (measured.length - 1);
       blocks.push({
         h,
@@ -580,7 +599,7 @@ export function layoutCard(ctx, project, member, emojiImages = null) {
     const contentBottom = PERF_Y - 56;
     const contentTop = contentBottom - contentH;
 
-    const base = 156 * clamp(s, 0.78, 1);
+    const base = 156 * clamp(Number(project.style.nameScale) || 1, 0.3, 2) * clamp(s, 0.78, 1);
     let nameSize = base;
     let nameLines = [name];
     setFont(ctx, { family: font.family, weight: font.weight, size: base, tracking: font.tracking });
@@ -665,7 +684,7 @@ function drawTicketBody(ctx, st, k) {
   ctx.restore();
 }
 
-function drawHeader(ctx, project, member, index, font) {
+function drawHeader(ctx, project, font) {
   const { event: ev, style: st } = project;
   const top = T.y + 58;
   ctx.textBaseline = 'alphabetic';
@@ -681,14 +700,14 @@ function drawHeader(ctx, project, member, index, font) {
   ctx.fillStyle = rgba(st.ink, 0.78);
   drawText(ctx, [ev.subtitle, ev.year].filter(Boolean).join(' '), X0, top + tCap + 38);
 
-  ctx.textAlign = 'right';
-  setFont(ctx, { family: UI, weight: 600, size: 15, tracking: 0.2 });
-  ctx.fillStyle = rgba(st.ink, 0.66);
-  drawText(ctx, String(ev.admit || '').toUpperCase(), X1, top + 11);
-  setFont(ctx, { family: MONO, weight: 500, size: 24, tracking: 0.02 });
-  ctx.fillStyle = st.ink;
-  drawText(ctx, `NO. ${String(index + 1).padStart(3, '0')}`, X1, top + tCap + 38);
-  ctx.textAlign = 'left';
+  const tag = String(ev.admit || '').trim();
+  if (tag) {
+    ctx.textAlign = 'right';
+    setFont(ctx, { family: UI, weight: 600, size: 15, tracking: 0.2 });
+    ctx.fillStyle = rgba(st.ink, 0.66);
+    drawText(ctx, tag.toUpperCase(), X1, top + tCap);
+    ctx.textAlign = 'left';
+  }
 }
 
 function drawName(ctx, member, L, st, k) {
@@ -809,8 +828,8 @@ function drawStub(ctx, project, member, index, L, assets, R, k) {
   ctx.save();
   ctx.setLineDash([0.1, 13]);
   ctx.lineCap = 'round';
-  ctx.lineWidth = 3.5;
-  ctx.strokeStyle = rgba(st.ink, 0.2);
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = rgba(st.ink, 0.42);
   ctx.beginPath();
   ctx.moveTo(T.x + NOTCH + 18, PERF_Y);
   ctx.lineTo(T.x + T.w - NOTCH - 18, PERF_Y);
@@ -918,7 +937,7 @@ export function drawCard(canvas, { project, member, index = 0, assets = {}, scal
   ctx.save();
   ticketPath(ctx);
   ctx.clip();
-  drawHeader(ctx, project, member, index, L.font);
+  drawHeader(ctx, project, L.font);
   drawName(ctx, member, L, st, k);
   let y = L.contentTop;
   for (const b of L.blocks) {
