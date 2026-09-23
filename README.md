@@ -36,7 +36,7 @@ Everything you enter autosaves in your browser. Nothing is uploaded anywhere.
    re-import after fixing a number.
 4. **Photos:** click through each member and drag their avatar onto the preview. Drag the photo on
    the card to reposition it, and scroll to zoom. **Match photo** picks an accent from their avatar.
-5. **Export all:** a `.zip` with every card, named `fireside-recap-2025-07-anette.png`.
+5. **Export all:** a `.zip` with every card, named `fireside-recap-2026-07-anette.png`.
 6. **Save:** download a project file (includes photos) as a backup. Next year, open it and use
    *Style → Start a new year* to clear the stats but keep names, photos, fields and styling.
 
@@ -47,7 +47,7 @@ everyone needs every stat.
 
 | Type | Looks like | Input |
 | --- | --- | --- |
-| **Stat** | Big number in the accent colour. Consecutive stats sit side by side (up to 3 per row). Tick **Wide** to make one the full-width hero number. | `20408` shows as `20,408`. Short text like `#30` or `211 days` works too. |
+| **Stat** | Big number in the accent colour. Consecutive stats sit side by side (up to 3 per row). Tick **Own row** to give one a row to itself. Every number on a card is the same size. | `20408` shows as `20,408`. Short text like `#30` or `211 days` works too. |
 | **Quote** | Italic serif line, with smart quotes added automatically. | `aurora's mom, monster fueled top ramen champion` |
 | **Ranked list** | Names with small accent-coloured counts. | `Cody (143), Devon (77), Safoof (47)`, comma or line separated |
 | **Emoji** | The first emoji field goes on the glass tile in the ticket stub. | Paste an emoji (rendered with Twemoji, same as Discord) or **Upload** a custom server emoji. |
@@ -72,8 +72,8 @@ the image host allows it.
 
 ## Style options
 
-Style tab: the event title, year, top-right tag and fine print (`{name}` is replaced by the member's
-name). There's also a display font, photo treatment (duotone, black & white, halftone, natural),
+Style tab: the event title, year, an optional top-right tag, and the fine print (`{name}` is
+replaced by the member's name). There's also a display font, name size (applies to every card), photo treatment (duotone, black & white, halftone, natural),
 film grain, chromatic aura, background glow, glass see-through, base colours, and export size or
 format.
 

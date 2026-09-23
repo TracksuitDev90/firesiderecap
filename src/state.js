@@ -4,7 +4,7 @@
 export const FIELD_TYPES = {
   stat: {
     label: 'Stat',
-    help: 'A big number or short value in the member’s accent colour. Tick “Wide” to make it the hero number.',
+    help: 'A big number or short value in the member’s accent colour. Consecutive stats sit side by side; tick “Own row” to give one a full row.',
     placeholder: '20408',
   },
   quote: {
@@ -85,14 +85,15 @@ export function defaultProject() {
     event: {
       title: 'Fireside',
       subtitle: 'Recap',
-      year: '2025',
-      admit: 'Admit one',
+      year: '2026',
+      admit: '',
       serialPrefix: 'FSR',
       finePrint:
         'Good for one (1) more year by the fire. Non-transferable, non-refundable, deeply appreciated. Thank you for being here, {name}.',
     },
     style: {
       displayFont: 'unbounded',
+      nameScale: 1,
       imageStyle: 'duotone',
       imageStrength: 0.9,
       grain: 0.4,
